@@ -67,7 +67,7 @@ namespace xv_11_driver
          * @brief Set the motor speed in RPM.  This is a non-blocking call that will set the speed of the motor to the given value.
          * @param speed The speed in RPM to set the motor to.  This is a non-blocking call that will set the speed of the motor to the given value.
          */
-        bool IsValidPacket(uint8_t *packet, int packetLength)
+        bool IsValidPacket(uint8_t *packet, int packetLength);
            
         /**
          * @brief Poll the laser to get a new scan. Blocks until a complete new scan is received or close is called.
