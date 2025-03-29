@@ -15,7 +15,7 @@ find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 
-add_executable(xv_11_driver src/xv_11_driver.cpp src/xv11_laser.cpp src/PID_v1_0_00.cpp)
+add_executable(xv_11_driver src/xv_11_driver.cpp src/xv11_laser.cpp src/PID_v1_0_0.cpp)
 ament_target_dependencies(xv_11_driver rclcpp std_msgs sensor_msgs)
 
 #target_include_directories(xv_11_driver
