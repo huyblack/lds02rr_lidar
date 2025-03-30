@@ -67,7 +67,7 @@
 // default xv11 dev name.  Suggest you use symbolic link for an easier to ricognize name on your system
 // example:  sudo ln -s /dev/yourTtyDevName /dev/ttyXV11
 // Here I assume you have setup symbolic link to your actual serial port tty driver to the lidar
-#define XV11_PORT_DEFAULT "/dev/ttyACM0"    // Serial device driver name (or a sym link to real dev, like /dev/ttyXV11)
+#define XV11_PORT_DEFAULT "/dev/ttyAMA0"    // Serial device driver name (or a sym link to real dev, like /dev/ttyXV11)
 #define XV11_BAUD_RATE_DEFAULT 115200       // Serial baud rate
 #define XV11_FRAME_ID_DEFAULT "neato_laser" // frame_id in LaserScan messages
 #define XV11_FIRMWARE_VERSION_DEFAULT 2     // XV-11 firmware rev. 1 is oldest
