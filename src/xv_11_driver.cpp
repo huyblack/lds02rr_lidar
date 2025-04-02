@@ -58,7 +58,6 @@
 #include <std_msgs/msg/string.hpp>
 #include <sensor_msgs/msg/laser_scan.hpp>
 
-#include <wiringPi.h>
 #include <iostream>
 #include <boost/asio.hpp>
 
@@ -72,18 +71,6 @@
 #define XV11_FRAME_ID_DEFAULT "neato_laser" // frame_id in LaserScan messages
 #define XV11_FIRMWARE_VERSION_DEFAULT 2     // XV-11 firmware rev. 1 is oldest
 
-// Định nghĩa chân PWM (GPIO số 18 sử dụng chế độ BCM)
-#define PWM_PIN 18
-#define PWM_RANGE 1024 // Ví dụ, giá trị range PWM
-
-// Hàm điều khiển PWM cho motor sử dụng wiringPi
-void setMotorPWM(float pwm)
-{
-    // pwm nhận vào từ 0.0 đến 1.0 => chuyển sang giá trị từ 0 đến PWM_RANGE
-    int pwm_value = static_cast<int>(pwm * PWM_RANGE);
-    pwmWrite(PWM_PIN, pwm_value);
-    std::cout << "Setting PWM on GPIO18 to " << pwm_value << std::endl;
-}
 
 int main(int argc, char *argv[])
 {
@@ -113,20 +100,8 @@ int main(int argc, char *argv[])
     std::string frame_id = frame_id_param.value_to_string();
     int firmware_number = firmware_param.as_int();
 
-    // Khởi tạo wiringPi sử dụng số chân BCM
-    if (wiringPiSetupGpio() == -1)
-    {
-        std::cerr << "wiringPi setup failed!" << std::endl;
-        return 1;
-    }
-
-    // Cấu hình chân PWM
-    pinMode(PWM_PIN, PWM_OUTPUT);
-    pwmSetMode(PWM_MODE_MS); // Mode vi mô (milliseconds mode)
-    pwmSetRange(PWM_RANGE);  // Đặt range cho PWM
-    pwmSetClock(32);         // Điều chỉnh tần số PWM (tùy thuộc vào ứng dụng)
-
     auto laser_pub = node->create_publisher<sensor_msgs::msg::LaserScan>("scan", 10);
+    auto rpm_pub = node->create_publisher<std_msgs::msg::UInt16>("rpms", 10);
 
     // std_msgs::msg::UInt16 rpms;
     boost::asio::io_service io;
@@ -135,27 +110,21 @@ int main(int argc, char *argv[])
     {
         xv_11_driver::XV11Laser laser(port, baud_rate, firmware_number, io);
 
-        // Thiết lập callback motor để điều chỉnh PWM qua hàm setMotorPWM đã định nghĩa
-        laser.setMotorPwmCallback(setMotorPWM);
-
-        // Bật motor
-        laser.enableMotor(true);
-
-        // auto motor_pub = node->create_publisher<std_msgs::UInt16>("rpms",1000);
-
         while (rclcpp::ok())
         {
             sensor_msgs::msg::LaserScan *scan;
             scan = new sensor_msgs::msg::LaserScan;
-            // sensor_msgs::LaserScan::Ptr scan(new sensor_msgs::LaserScan);
             scan->header.frame_id = frame_id;
-            scan->header.stamp = rclcpp::Clock().now(); //  ROS was  Time::now();
+            scan->header.stamp = rclcpp::Clock().now();
             laser.poll(scan);
-            laser.updateMotorControl();
             laser_pub->publish(*scan);
 
-            // rpms.data=laser.rpms;
-            //  motor_pub->publish(rpms);
+            // Publish RPM
+            std_msgs::msg::UInt16 rpm_msg;
+            rpm_msg.data = laser.rpms;
+            rpm_pub->publish(rpm_msg);
+
+            delete scan;
         }
         laser.close();
         return 0;

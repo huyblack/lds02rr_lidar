@@ -38,7 +38,6 @@
 #include <boost/asio.hpp>
 #include <boost/array.hpp>
 #include <string>
-#include "PID_v1_0_0.h" 
 
 #define PACKET_LENGTH 22
 #define OFFSET_TO_CRC_L (PACKET_LENGTH - 2)
@@ -80,12 +79,6 @@ namespace xv_11_driver
          */
         void close() { shutting_down_ = true; };
 
-        // Các hàm điều khiển motor
-        bool setScanRPM(float rpm);
-        void setMotorPwmCallback(std::function<void(float)> cb);
-        void enableMotor(bool enable);
-        void updateMotorControl();
-        bool motorCheck(); // kiểm tra xem RPM có nằm trong giới hạn không
 
     private:
         std::string port_;   ///< @brief The serial port the driver is attached to
@@ -95,22 +88,7 @@ namespace xv_11_driver
         bool shutting_down_;              ///< @brief Flag for whether the driver is supposed to be shutting down or not
         boost::asio::serial_port serial_; ///< @brief Actual serial port object for reading/writing to the XV11 Laser Scanner
 
-        // motor control variables
-        bool motor_enabled = false;
-        float scan_rpm_setpoint = 300.0; // ví dụ mặc định
-        float measured_rpm = 0.0;
-        float pwm_val = 0.5;
-        float pwm_last = 0.5;
-        unsigned long motor_check_timer = 0;
-        unsigned long motor_check_interval = 200; // ms
-        int scan_rpm_err = 0;
-        const int scan_rpm_err_thresh = 10;
-        
-        // Callback để xuất pwm ra phần cứng, nếu được thiết lập
-        std::function<void(float)> motor_callback;
-
-        PID_v1 scanRpmPID;
-
+    
 
         uint16_t motor_speed_; ///< @brief current motor speed as reported by the XV11.
     };

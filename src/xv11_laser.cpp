@@ -34,7 +34,6 @@
 
 #include "../include/xv_11_driver/xv11_laser.h"
 #include <chrono>
-#include "../include/xv_11_driver/PID_v1_0_0.h" 
 
 static unsigned long nowMillis() {
     return std::chrono::duration_cast<std::chrono::milliseconds>
@@ -47,14 +46,7 @@ namespace xv_11_driver
 																														baud_rate_(baud_rate), firmware_(firmware), shutting_down_(false), serial_(io, port_)
 	{
 		serial_.set_option(boost::asio::serial_port_base::baud_rate(baud_rate_));
-		scan_rpm_setpoint = 300.0f;
-        pwm_val = 0.5f;
-        pwm_last = 0.5f;
-        measured_rpm = 0.0f;
-        scanRpmPID.init(&measured_rpm, &pwm_val, &scan_rpm_setpoint, 3.0e-3f, 1.0e-3f, 0.0f, PID_v1::DIRECT);
-        scanRpmPID.SetOutputLimits(0, 1.0f);
-        scanRpmPID.SetSampleTime(20);
-        scanRpmPID.SetMode(PID_v1::AUTOMATIC);
+
 	}
 
 
@@ -208,7 +200,7 @@ namespace xv_11_driver
 								good_sets++;
 								motor_speed += (raw_bytes[i + 3] << 8) + raw_bytes[i + 2]; // accumulate count for avg. time increment
 								rpms = (raw_bytes[i + 3] << 8 | raw_bytes[i + 2]) / 64;
-								measured_rpm = static_cast<float>(rpms);
+								// measured_rpm = static_cast<float>(rpms);
 
 								for (uint16_t j = i + 4; j < i + 20; j = j + 4)
 								{
@@ -239,54 +231,5 @@ namespace xv_11_driver
 		}
 	}
 
-	void XV11Laser::setMotorPwmCallback(std::function<void(float)> cb) {
-		motor_callback = cb;
-	}
-
-
-	bool XV11Laser::setScanRPM(float rpm) {
-		// Nếu rpm không hợp lệ, dùng giá trị mặc định
-		scan_rpm_setpoint = (rpm > 0) ? rpm : 300.0;
-		return true;
-	}
-	
-	void XV11Laser::enableMotor(bool enable) {
-		motor_enabled = enable;
-		if (enable) {
-			// reset lỗi rpm nếu motor vừa được cho phép
-			scan_rpm_err = 0;
-		}
-		if (motor_callback)
-			motor_callback(enable ? pwm_val : 0.0f);
-	}
-	
-	bool XV11Laser::motorCheck() {
-		unsigned long now = nowMillis();
-		if (now - motor_check_timer <= motor_check_interval)
-			return false;   // chưa đến thời gian kiểm tra lần kế
-		// Xác định dải rpm cho phép (ví dụ: 80-110% của setpoint)
-		float scan_rpm_min = scan_rpm_setpoint * 0.8f;
-		float scan_rpm_max = scan_rpm_setpoint * 1.1f;
-		
-		if (motor_enabled && ((measured_rpm < scan_rpm_min) || (measured_rpm > scan_rpm_max))) {
-			scan_rpm_err++;
-		} else {
-			scan_rpm_err = 0;
-		}
-		motor_check_timer = now;
-		return (scan_rpm_err > scan_rpm_err_thresh);
-	}
-	
-	void XV11Laser::updateMotorControl() {
-        if (!motor_enabled)
-            return;
-        // Cập nhật điều khiển bằng PID
-        scanRpmPID.Compute();
-        if (motor_callback && (pwm_val != pwm_last)) {
-            motor_callback(pwm_val);
-            pwm_last = pwm_val;
-        }
-	}
-		
 
 }
