@@ -56,6 +56,7 @@
 #include "../include/xv_11_driver/xv11_laser.h"
 
 #include <std_msgs/msg/string.hpp>
+#include <std_msgs/msg/u_int16.hpp>
 #include <sensor_msgs/msg/laser_scan.hpp>
 
 #include <iostream>
