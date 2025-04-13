@@ -195,7 +195,7 @@ namespace xv_11_driver
 						// read data in sets of 4
 						for (uint16_t i = 0; i < raw_bytes.size(); i = i + 22)
 						{
-							if (raw_bytes[i] == 0xFA && raw_bytes[i + 1] == (0xA0 + i / 22) && IsValidPacket(&raw_bytes[i], PACKET_LENGTH))
+							if (raw_bytes[i] == 0xFA && raw_bytes[i + 1] == (0xA0 + i / 22) /*&& IsValidPacket(&raw_bytes[i], PACKET_LENGTH)*/)
 							{ //&& CRC check
 								good_sets++;
 								motor_speed += (raw_bytes[i + 3] << 8) + raw_bytes[i + 2]; // accumulate count for avg. time increment

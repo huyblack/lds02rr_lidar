@@ -15,11 +15,11 @@ find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 
-
+find_package(rmw_cyclonedds_cpp REQUIRED)
 
 
 add_executable(xv_11_driver src/xv_11_driver.cpp src/xv11_laser.cpp)
-ament_target_dependencies(xv_11_driver rclcpp std_msgs sensor_msgs)
+ament_target_dependencies(xv_11_driver rclcpp std_msgs sensor_msgs rmw_cyclonedds_cpp)
 
 #target_include_directories(xv_11_driver
 #  PUBLIC
